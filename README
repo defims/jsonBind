@@ -1,0 +1,5 @@
+中文说明：
+    json 有对象和数组两种类型，jsonBind遇到数组则进行重复渲染，遇到对象则只渲染一次，data-template指定渲染层级。
+    默认使用两种正则匹配位置，属性位置和结点内位置,如
+    <a data-attr-href="{href}" data-tempeData="tempeData"><!--content--></a>
+可自定义模板匹配正则。
