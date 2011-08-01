@@ -14,7 +14,7 @@
     "jsonBind":function(options,callback){                
         /*参数初始化*/
         options=jQuery.extend ({   
-            data:  "",         
+            data:  "",       
             templatePattern       : /data-template=["']([^"']+)["']/gim,               //模板标志的模式
             attributePattern      : /data-attr-(\w+)=["']([^"']+)["']/gim,             //位于属性位置的模式,data-attr-XX="XX{XX}XX"
             attributeValuePattern : /{([^"'{}]+)}/gim,                                 //属性值的模式,"XX{XX}XX"      
@@ -24,26 +24,45 @@
             hideDataPath          : true
         },options);  
         var serialNum = 0;
-        /*处理json初始层级*/
-        if($(this).data("template")=="root"||$(this).data("template")=="template"){
-            var useData = options.data;       
-            var dataPath = "";               
+        var targetDom =$(this);
+        /*引入json数据，如果data值为url则引入json数据*/
+        if(typeof(options.data)=="string"){
+            var scriptDom=document.createElement("SCRIPT");        
+            scriptDom.src = url; /*x.defer=true;*/
+	        scriptDom.type = 'text/javascript';
+	        scriptDom.onload = JSONP.onreadystatechange = function(){//onreadystatechange，仅IE	            
+	            if (!this.readyState || this.readyState === "loaded" || this.readyState === "complete") {           
+                    fnInit(targetDom,data);  //读入引入文件的data变量
+		            scriptDom.onload = scriptDom.onreadystatechange = null//清内存，防止IE memory leaks
+	            }
+            }
+            document.getElementsByTagName("HEAD")[0].appendChild(scriptDom);  
         }else{
-            var useData = options.data[$(this).data("template")];
-            var dataPath = $(this).data("template");
+            fnInit(targetDom,options.data);
         }
-        /*callback处理,如果有callback则直接回递渲染的结果*/
-        if(callback){
-            callback(render($(this),useData,dataPath));
-        }else{
-            $(this).after(render($(this),useData,dataPath));
-        }
-        /*模板隐藏*/
-        if(options.hideTemplate){
-            $(this).hide();
-        }        
+        /*函数初始化*/
+        function fnInit(targetDom,data){
+            /*处理json初始层级*/
+            if(targetDom.data("template")=="root"||targetDom.data("template")=="template"){
+                var useData = data;       
+                var dataPath = "";               
+            }else{
+                var useData = data[targetDom.data("template")];
+                var dataPath = targetDom.data("template");
+            }
+            /*callback处理,如果有callback则直接回递渲染的结果*/
+            if(callback){
+                callback(fnRender(targetDom,useData,dataPath));
+            }else{
+                targetDom.after(fnRender(targetDom,useData,dataPath));
+            }
+            /*模板隐藏*/
+            if(options.hideTemplate){
+                targetDom.hide();
+            }      
+        }  
         /*渲染*/
-        function render(template,data,path){           
+        function fnRender(template,data,path){           
             var templateDom=$("<div/\>");          
             if(Object.prototype.toString.apply(data).split("object ")[1].split("]")[0]=="Object"){//将单纯的对象转为长度为1的数组
                 data=new Array(data);
@@ -56,7 +75,7 @@
                     var dataTemp = data[index][$(this).data("template")];  
                     var dataPath = path+"["+index+"]."+$(this).data("template");   
                     if(dataTemp){//防止找不到数据报错
-                        var content =render($(this),dataTemp,dataPath);
+                        var content = fnRender($(this),dataTemp,dataPath);
                     }
                     return content?content:"";
                 });
@@ -83,6 +102,6 @@
                 }));                
             }
             return templateDom.html();
-        }        
+        }      
     }
 })})(jQuery)
