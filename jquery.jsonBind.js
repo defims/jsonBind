@@ -7,8 +7,6 @@
  * Dual licensed under the MIT or GPL Version 2 licenses.
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  *
- * Date: Sat Jul 30 10:13:56 2011
- *
  */ 
 ;(function($){$.fn.extend({
     "jsonBind":function(options,callback){                
