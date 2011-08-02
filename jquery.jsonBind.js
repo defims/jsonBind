@@ -1,5 +1,5 @@
 /*
- * jQuery JsonBind Library v1.0.8
+ * jQuery JsonBind Library v1.0.6
  * 
  * http://blog.idea5.org/
  *
@@ -22,13 +22,13 @@
             hideTemplate          : true ,
             hideDataPath          : true
         },options);  
-        var serialNum = 0;
+        /*全局变量初始化*/        
         var targetDom = $(this);        
         /*引入json数据，如果data值为url则引入json数据*/
         if(targetDom.length){//是否有模板的判断
             if(typeof(options.data)=="string"){
                 var scriptDom=document.createElement("SCRIPT");        
-                scriptDom.src = options.data; /*x.defer=true;*/
+                scriptDom.src = options.data;
 	            scriptDom.type = 'text/javascript';
 	            scriptDom.onload = scriptDom.onreadystatechange = function(){//onreadystatechange，仅IE	            
 	                if (!this.readyState || this.readyState === "loaded" || this.readyState === "complete") {           
@@ -64,35 +64,38 @@
             }      
         }  
         /*渲染*/
-        function fnRender(template,data,path){           
-            var templateDom=$("<div/\>");          
-            if(Object.prototype.toString.apply(data).split("object ")[1].split("]")[0]=="Object"){//将单纯的对象转为长度为1的数组
+        function fnRender(template,data,path){    
+            /*创建容器Dom*/       
+            var templateDom = $(template).clone();  
+            
+            /*将单纯的对象转为长度为1的数组*/
+            if(Object.prototype.toString.apply(data).split("object ")[1].split("]")[0]=="Object"){
                 data=new Array(data);
-            };            
-            for(var index=0;index<data.length;++index){  
+            };       
+            /*生成容器内内容*/  
+            var serialNum = 0;   
+            for(var index=0;index<data.length;++index){
                 /*创建临时元素*/
                 var renderTemp=$(template).clone();  
-                /*渲染子元素*/                
-                
-                renderTemp.find(":[data-template]").replaceWith(function(){
-                    var dataTemp = data[index][$(this).attr("data-template")];  
-                    var dataPath = path+"["+index+"]."+$(this).attr("data-template");   
+                /*渲染子元素*/    
+                renderTemp.find("[data-template],[data-template-in]").replaceWith(function(){
+                    var attr = $(this).attr("data-template")?$(this).attr("data-template"):$(this).attr("data-template-in");
+                    var dataTemp = data[index][attr];   
                     if(dataTemp){//防止找不到数据报错
-                        var content = fnRender($(this),dataTemp,dataPath);
-                    }
-                    return content?content:"";
-                }).find(":[data-template-in]").replaceWith(function(){
-                    var dataTemp = data[index][$(this).attr("data-template-in")];  
-                    var dataPath = path+"["+index+"]."+$(this).attr("data-template-in");   
-                    if(dataTemp){//防止找不到数据报错
-                        var content = fnRender($(this),dataTemp,dataPath);
+                        var content = fnRender($(this),dataTemp,path+"["+index+"]."+attr);
                     }
                     return content?content:"";
                 });
-                /*重复并替换模板*/                 
-                templateDom.append(function(){          
-                    renderTemp = renderTemp.wrap("<div/\>").parent().html()
-                    .replace(options.elementPattern,function(o,i){//处理结点模式如： <!--XX-->
+                /*重复并替换模板*/           
+                if(template.attr("data-template-in")){//处理innerTemplate如: data-template-in
+                    templateDom.append($(fnTemplateReplace()).html());  
+                }else{
+                    templateDom.append(fnTemplateReplace());  
+                }                
+                
+                function fnTemplateReplace(){     
+                    return renderTemp.wrap("<div/\>").parent().html()
+                      .replace(options.elementPattern,function(o,i){//处理结点模式如： <!--XX-->
                         if(options.serialPattern.test(i)){
                             return serialNum++;
                         }else{
@@ -111,16 +114,11 @@
                             }
                         })                                          
                         return value ? attr+"=\'"+value+"\'" : "";                         
-                    })
-                    
-                    if(options.innerTemplatePattern.test(renderTemp)){//处理innerTemplate如: data-template-in
-                        return $(renderTemp).html();
-                    }else{
-                        return renderTemp;
-                    } 
-                });                
+                    });
+                }              
             }
-            return templateDom.html();
+            /*返回生成内容*/
+            return template.attr("data-template") ? templateDom.html() : templateDom.wrap("<div/\>").parent().html();
         }      
     }
 })})(jQuery)
