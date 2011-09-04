@@ -1,5 +1,5 @@
 /*
- * jQuery JsonBind Library v1.0.6
+ * jQuery JsonBind Library v1.1.0
  * 
  * http://blog.idea5.org/
  *
@@ -9,10 +9,10 @@
  *
  */ 
 ;(function($){$.fn.extend({
-    "jsonBind":function(options,callback){                
+    "jsonBind":function(param,options,callback){                
         /*参数初始化*/
-        options=jQuery.extend ({   
-            data:  "",       
+        
+        options=jQuery.extend ({        
             templatePattern       : /data-template=["']([^"']+)["']/gim,               //模板标志的模式，默认为作用为整个dom
             innerTemplatePattern  : /data-template-in=["']([^"']+)["']/gim,            //内作用模板标志的模式，即作用为dom内的内容，不报扩dom本身,和templatePattern不可一起用
             attributePattern      : /data-attr-(\w+)=["']([^"']+)["']/gim,             //位于属性位置的模式,data-attr-XX="XX{XX}XX"
@@ -20,15 +20,15 @@
             elementPattern        : /<!--(\w+)-->/gim,                                 //位于结点内的模式
             serialPattern         : /serial/im,                                        //唯一序列模式
             hideTemplate          : true ,
-            hideDataPath          : true
+            hideDataPath          : true ,
         },options);  
         /*全局变量初始化*/        
         var targetDom = $(this);        
         /*引入json数据，如果data值为url则引入json数据*/
         if(targetDom.length){//是否有模板的判断
-            if(typeof(options.data)=="string"){
+            if(typeof(param)=="string"){
                 var scriptDom=document.createElement("SCRIPT");        
-                scriptDom.src = options.data;
+                scriptDom.src = param;
 	            scriptDom.type = 'text/javascript';
 	            scriptDom.onload = scriptDom.onreadystatechange = function(){//onreadystatechange，仅IE	            
 	                if (!this.readyState || this.readyState === "loaded" || this.readyState === "complete") {           
@@ -36,9 +36,16 @@
 		                scriptDom.onload = scriptDom.onreadystatechange = null//清内存，防止IE memory leaks
 	                }
                 }
-                document.getElementsByTagName("HEAD")[0].appendChild(scriptDom);  
+                document.getElementsByTagName("HEAD")[0].appendChild(scriptDom); 
+                /*$.ajax({
+                    url:data,
+                    success:function(data){
+                        //console.log(eval(data));                        
+                        fnInit(targetDom,eval(data));  //读入引入文件的data变量
+                    }
+                });*/ 
             }else{
-                fnInit(targetDom,options.data);
+                fnInit(targetDom,data);
             }
         }//可增加调试模式记录错误信息
         /*函数初始化*/
@@ -54,7 +61,7 @@
             }
             /*callback处理,如果有callback则直接回递渲染的结果*/
             if(callback){
-                callback(fnRender(targetDom,useData,dataPath));
+                callback.call(targetDom,fnRender(targetDom,useData,dataPath),data);
             }else{
                 targetDom.after(fnRender(targetDom,useData,dataPath));
             }
@@ -66,7 +73,7 @@
         /*渲染*/
         function fnRender(template,data,path){    
             /*创建容器Dom*/       
-            var templateDom = $(template).clone();  
+            var templateDom = $(template).clone().empty();  
             
             /*将单纯的对象转为长度为1的数组*/
             if(Object.prototype.toString.apply(data).split("object ")[1].split("]")[0]=="Object"){
