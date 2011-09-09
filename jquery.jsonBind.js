@@ -56,7 +56,7 @@
                     }
                 });*/
             }else{
-                fnInit(targetDom,data);
+                fnInit(targetDom,param);
             }
         }//可增加调试模式记录错误信息
         /*函数初始化*/
