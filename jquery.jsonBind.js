@@ -1,5 +1,5 @@
 /*
- * jQuery JsonBind Library v1.1.0
+ * jQuery JsonBind Library v1.1.1
  * 
  * http://blog.idea5.org/
  *
@@ -9,9 +9,10 @@
  *
  */ 
 ;(function($){$.fn.extend({
-    "jsonBind":function(param,options,callback){                
-        /*参数初始化*/
-        
+    "jsonBind":function(param,options,callback){   
+        /*options参数省略情况*/
+        $.isFunction(options) ? callback = options :"";
+        /*参数初始化*/    
         options=jQuery.extend ({        
             templatePattern       : /data-template=["']([^"']+)["']/gim,               //模板标志的模式，默认为作用为整个dom
             innerTemplatePattern  : /data-template-in=["']([^"']+)["']/gim,            //内作用模板标志的模式，即作用为dom内的内容，不报扩dom本身,和templatePattern不可一起用
@@ -20,14 +21,24 @@
             elementPattern        : /<!--(\w+)-->/gim,                                 //位于结点内的模式
             serialPattern         : /serial/im,                                        //唯一序列模式
             hideTemplate          : true ,
-            hideDataPath          : true ,
-        },options);  
+            hideDataPath          : true ,                
+            debug                 : false
+        },options);    
+        /*debug*/
+        options.debug ? console.log("---------data:-----------\n"+param+"\n--------options:---------\n"+(function(){
+            var result="";
+            for(var i in options){
+                result+= i+"  :   "+options[i]+"\n";
+            } 
+            return result;
+        })()) :"";
         /*全局变量初始化*/        
         var targetDom = $(this);        
         /*引入json数据，如果data值为url则引入json数据*/
         if(targetDom.length){//是否有模板的判断
             if(typeof(param)=="string"){
-                var scriptDom=document.createElement("SCRIPT");        
+                var scriptDom=document.createElement("SCRIPT");  
+                scriptDom.id = "jsonBindTempDom";      
                 scriptDom.src = param;
 	            scriptDom.type = 'text/javascript';
 	            scriptDom.onload = scriptDom.onreadystatechange = function(){//onreadystatechange，仅IE	            
@@ -43,7 +54,7 @@
                         //console.log(eval(data));                        
                         fnInit(targetDom,eval(data));  //读入引入文件的data变量
                     }
-                });*/ 
+                });*/
             }else{
                 fnInit(targetDom,data);
             }
@@ -100,7 +111,8 @@
                     templateDom.append(fnTemplateReplace());  
                 }                
                 
-                function fnTemplateReplace(){     
+                function fnTemplateReplace(){                 
+                    options.debug ? console.log("--------Template:--------\n"+renderTemp.wrap("<div/\>").parent().html()+"\n\n-------Rendering...-----\n") : "";    
                     return renderTemp.wrap("<div/\>").parent().html()
                       .replace(options.elementPattern,function(o,i){//处理结点模式如： <!--XX-->
                         if(options.serialPattern.test(i)){
@@ -112,20 +124,27 @@
                         return options.hideDataPath ? "" : "data-path='"+(path+"["+index+"]")+"'";
                     }).replace(options.attributePattern,function(m,attr,value){//处理属性替换模式如：data-attr-XX     
                         value = value.replace(options.attributeValuePattern,function(){//遍历替换所有attr中的值如果{id}{random}
+                            //console.log(options.attributeValuePattern);
                             for(var i=1; i<arguments.length-2;++i){
                                 if(options.serialPattern.test(arguments[i])){                                
                                     return serialNum++;
-                                }else{                    
+                                }else{                                                       
                                     return data[index][arguments[i]] ? data[index][arguments[i]] : "";
                                 }                            
-                            }
-                        })                                          
+                            }   
+                        }) 
+                        options.debug ? ( console.log(m+" --> " + (value ? attr+"=\'"+value+"\'" : "")) ):"";//debug输出                                           
                         return value ? attr+"=\'"+value+"\'" : "";                         
                     });
                 }              
             }
+            /*删除创建的节点*/
+            $("#jsonBindTempDom").remove();
+            /*删除数据*/
+            data = null;
             /*返回生成内容*/
-            return template.attr("data-template") ? templateDom.html() : templateDom.wrap("<div/\>").parent().html();
+            options.debug ? console.log("--------result:---------\n"+(template.attr("data-template") ? templateDom.html() : templateDom.wrap("<div/\>").parent().html())+"\n\n\n"):"";
+            return template.attr("data-template") ? templateDom.html() : templateDom.wrap("<div/\>").parent().html();  
         }      
     }
 })})(jQuery)
