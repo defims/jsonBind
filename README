@@ -16,3 +16,13 @@
     默认使用两种正则匹配位置，属性位置和结点内位置,如
     <a data-attr-href="{href}" data-tempeData="tempeData"><!--content--></a>
 可自定义模板匹配正则。
+    默认参数如下：
+    templatePattern       : /data-template=["']([^"']+)["']/gim,               //模板标志的模式，默认为作用为整个dom
+    innerTemplatePattern  : /data-template-in=["']([^"']+)["']/gim,            //内作用模板标志的模式，即作用为dom内的内容，不报扩dom本身,和templatePattern不可一起用
+    attributePattern      : /data-attr-(\w+)=["']([^"']+)["']/gim,             //位于属性位置的模式,data-attr-XX="XX{XX}XX"
+    attributeValuePattern : /{([^"'{}]+)}/gim,                                 //属性值的模式,"XX{XX}XX"      
+    elementPattern        : /<!--(\w+)-->/gim,                                 //位于结点内的模式
+    serialPattern         : /serial/im,                                        //唯一序列模式
+    hideTemplate          : true ,                                             //是否隐藏模板
+    hideDataPath          : true ,                                             //是否隐藏模板使用的数据在json数据里的具体路径
+    debug                 : false                                              //是否启用debug模式
