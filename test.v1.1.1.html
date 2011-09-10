@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title></title>
+<script src="jquery-1.6.1.min.js"></script>
+<script src="jquery.jsonBind-1.1.1.js"></script>
+<script>
+/*var jsonData=[
+    {number:1,sex:'male',attrs:[{attr:"attr1"},
+                                {attr:"attr2"},
+                                {attr:"attr3"},
+                                {attr:"attr4"}]
+    },
+	{number:2,sex:'male',attrs:[{attr:"attr1"},
+	                            {attr:"attr2"},
+	                            {attr:"attr3"}]
+	},
+	{number:3,sex:'female',attrs:[{attr:"attr1"},
+	                              {attr:"attr2"},
+	                              {attr:"attr3"}]
+	},
+	{number:4,sex:'male',job:'engineer'},
+	{number:5,sex:'male',job:'engineer'}
+]*/
+
+var jsonData=
+[{number:1,sex:'male',attrs:[{attr:"attr1"},
+                             {attr:"attr2"},
+                             {attr:"attr3"},
+                             {attr:"attr4"}]
+},{number:1,sex:'male',attrs:[{attr:"attr1"},
+                              {attr:"attr2"},
+                              {attr:"attr3"},
+                              {attr:"attr4"}]
+}];
+$(function(){
+    $(".category").jsonBind(jsonData,{debug:true});
+})
+</script>
+</head>
+<body>
+<ul>
+    <li class="category" data-template="root" data-attr-id="{number}{random}" >
+        <h3><!--sex--></h3>        
+            <div data-template-in="attrs"><!--attr--></div>       
+    </li>
+</ul>
+</body>
+</html>
